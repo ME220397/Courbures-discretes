@@ -9,6 +9,9 @@
 #include <Eigen/Geometry>
 #include "mainwindow.h"
 
+#define K 0
+#define H 1
+
 class MyQuad
 {
     double _coefs[5] ; // a_0 x^2 + a1 xy + a2 y^2 + a3 x + a4 y + a5
@@ -152,6 +155,7 @@ class Courbures
 {
 private:
     MyMesh &_mesh ;
+    int choice;
 
 public:
     OpenMesh::VPropHandleT<double>    vprop_K;
@@ -164,7 +168,10 @@ public:
     std::vector<MyMesh::VertexHandle> get_two_neighborhood(MyMesh::VertexHandle vh);
     MyQuad fit_quad(MyMesh::VertexHandle vh) ;
     void compute_KH() ;
-    void set_K_colors() ;
+    void set_K_colors(int choice) ;
+    void update(int choice);
+    OpenMesh::Vec3uc color_scale_hot(double ratio);
+    OpenMesh::Vec3uc color_scale_cold(double ratio);
 };
 
 #endif // COURBURES_H

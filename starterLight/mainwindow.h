@@ -56,6 +56,10 @@ private slots:
 
     void on_pushButton_courbures_clicked();
 
+    void on_pushButton_K_clicked();
+
+    void on_pushButton_H_clicked();
+
 private:
 
     bool modevoisinage;

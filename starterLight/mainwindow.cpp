@@ -4,7 +4,7 @@
 
 
 /* **** début de la partie boutons et IHM **** */
-
+Courbures *courb;
 
 void MainWindow::on_pushButton_chargement_clicked()
 {
@@ -21,6 +21,7 @@ void MainWindow::on_pushButton_chargement_clicked()
     displayMesh(&mesh);
 }
 
+
 void MainWindow::on_pushButton_courbures_clicked()
 {
     // fenêtre de sélection des fichiers
@@ -32,10 +33,10 @@ void MainWindow::on_pushButton_courbures_clicked()
     mesh.update_normals();
     mesh.request_vertex_colors() ;
 
-    Courbures courb(mesh) ;
+    courb = new Courbures(mesh) ;
     resetAllColorsAndThickness(&mesh);
-
-    courb.set_fixed_colors();
+    courb->compute_KH();
+    courb->set_fixed_colors();
     displayMesh(&mesh,DisplayMode::VertexColorShading);
 }
 
@@ -310,3 +311,17 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+
+void MainWindow::on_pushButton_K_clicked()
+{
+    courb->update(K);
+    courb->set_K_colors(K);
+    displayMesh(&mesh,DisplayMode::VertexColorShading);
+}
+
+void MainWindow::on_pushButton_H_clicked()
+{
+    courb->update(H);
+    courb->set_K_colors(H);
+    displayMesh(&mesh,DisplayMode::VertexColorShading);
+}

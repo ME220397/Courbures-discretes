@@ -4,6 +4,7 @@
 #include <Eigen/Geometry>
 #include <Eigen/Dense>
 
+
 void Courbures::set_fixed_colors()
 {
     MyMesh::VertexIter v_it ;
@@ -77,7 +78,7 @@ std::vector<MyMesh::VertexHandle> Courbures::get_two_neighborhood(const MyMesh::
     }
 
     // Concaténation des deux cercles
-    neigh.insert(neigh.end(), neigh2.begin(), neigh2.end()) ;
+    neigh.insert(neigh.end(), neigh2.begin(), neigh2.end());
 
     _mesh.remove_property(vprop_flag);
 
@@ -142,7 +143,8 @@ MyQuad Courbures::fit_quad(MyMesh::VertexHandle vh)
 //            std::cout << pi_e[0] << ", " << pi_e[1] << ", " << pi_e[2] << std::endl ;
 
 		// TODO : initialisation de A / B
-			
+            A.row(i) << pi_e.x()*pi_e.x(), pi_e.x()*pi_e.y(), pi_e.y()*pi_e.y(), pi_e.x(), pi_e.y();
+            B.row(i) << pi_e.z();
         }
 
         // Résolution aux moindres carrés par SVD
@@ -177,33 +179,77 @@ void Courbures::compute_KH()
         _mesh.property(vprop_H, vh) = q[0] + q[2] ; // K = Tr (K_P) = a_0 + a_2
     }
 }
+void Courbures::update(int choice){
+    set_K_colors(choice);
+}
 
-void Courbures::set_K_colors()
+OpenMesh::Vec3uc Courbures::color_scale_hot(double ratio){
+    //we want to normalize ratio so that it fits in to 6 regions
+        //where each region is 256 units long
+        int normalized = int(ratio * 256 * 2);
+
+        //find the distance to the start of the closest region
+        int x = normalized % 256;
+
+        int red = 0, grn = 0, blu = 0;
+        std::cout << "normalized : " <<normalized << "divBy256 : " << normalized/256 <<std::endl;
+        switch(normalized / 256)
+        {
+        case 0: red = 255;      grn = x;        blu = 0;       break;//red
+        case 1: red = 255 - x;  grn = 255;      blu = 0;       break;//yellow
+        }
+        std::cout << " Couleur : " << red << " " << grn << " " <<blu << std::endl;
+        return OpenMesh::Vec3uc(red ,grn ,blu);
+}
+
+OpenMesh::Vec3uc Courbures::color_scale_cold(double ratio){
+    //we want to normalize ratio so that it fits in to 6 regions
+        //where each region is 256 units long
+        int normalized = int(ratio * 256 * 2);
+
+        //find the distance to the start of the closest region
+        int x = normalized % 256;
+
+        int red = 0, grn = 0, blu = 0;
+        switch(normalized / 256)
+        {
+        case 0: red = 0;        grn = 255 - x;  blu = 255;     break;//cyan
+        case 1: red = x;        grn = 0;        blu = 255;     break;//blue
+        }
+        return OpenMesh::Vec3uc(red ,grn ,blu);
+}
+
+void Courbures::set_K_colors(int choice)
 {
     MyMesh::VertexIter v_it ;
     MyStats<double> dist ;
     OpenMesh::Vec3uc tmp_color ;
     double r = 255, g = 255, b = 255 ;
-
     for (v_it = _mesh.vertices_begin(); v_it != _mesh.vertices_end(); ++v_it)
     {
-        dist.push_back(_mesh.property(vprop_K, *v_it));
+        if(choice == K)
+            dist.push_back(_mesh.property(vprop_K, *v_it));
+        else if(choice == H)
+            dist.push_back(_mesh.property(vprop_H, *v_it));
     }
     double m = dist.mean(), sigma = dist.stdev(m) ;
     double tmp, lambda ;
     std::cout << "K min : " << dist.min() << " - max : " << dist.max() << std::endl ;
     std::cout << "K mean : " << m << " - sigma : " << sigma << std::endl;
-
     for (v_it = _mesh.vertices_begin(); v_it != _mesh.vertices_end(); ++v_it)
     {
-        tmp  = _mesh.property(vprop_K, *v_it) - m ;
+        if( choice == K)
+            tmp  = _mesh.property(vprop_K, *v_it) - m ;
+        else if(choice == H)
+            tmp  = _mesh.property(vprop_H, *v_it) - m ;
 		// Carte de couleur de tmp (pour les valeurs comprises entre
-		// m-sigma / m+sigma
-		
-		// TODO
-		
-		tmp_color = OpenMesh::Vec3uc(r,g,b) ;
+        // m-sigma / m+sigma
+        tmp_color = OpenMesh::Vec3uc(150,150,150);
+        if(tmp >= m-sigma && tmp <= 0)
+            tmp_color = color_scale_cold(std::abs(tmp/(m-sigma)));
+        if(tmp >0&& tmp <= (m+sigma))
+            tmp_color = color_scale_hot(tmp/(m+sigma));
 
-		_mesh.set_color(*v_it, MyMesh::Color(tmp_color)) ;
+        _mesh.set_color(*v_it, MyMesh::Color(tmp_color)) ;
     }
 }
