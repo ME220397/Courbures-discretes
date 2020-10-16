@@ -1,5 +1,8 @@
 # Courbures-discretes
-
-Sujet de tp : courbures_discretes_MasterGIG2.pdf.
+Collaborateurs : [KAMMERLOCHER Léo](https://github.com/Leokamm), MUNOZ Elias.
 <br/>
-Le TP n'est pas encore terminé.
+TP1 :
+<br/>
+Sujet : [courbures discretes]MasterGIG2.pdf.
+<br/>
+Etat : En cours.
