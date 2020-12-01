@@ -168,58 +168,79 @@ void Courbures::compute_KH()
     MyQuad  q ;
     MyMesh::VertexHandle vh ;
 
+    Eigen::Matrix2d A;
+    double l;
+    double det_A;
+
+    Eigen::Matrix2d Kp;
+    Eigen::EigenSolver<Eigen::Matrix2d> solver;
     _mesh.add_property(vprop_K,  "vprop_K");
     _mesh.add_property(vprop_H,  "vprop_H");
+
+    _mesh.add_property(vprop_K_p,  "vprop_K_p");
+    _mesh.add_property(vprop_H_p,  "vprop_H_p");
+
+
 
     for (v_it = _mesh.vertices_begin(); v_it != _mesh.vertices_end(); ++v_it)
     {
         vh = *v_it ;
         q = fit_quad(vh) ;
+
+        /*A(0,0) = 2*q[0] + 2*q[0]*q[4]*q[4] + q[1]*q[3]*q[4]; //2a0 + 2a0a4^2 + a1a3a4
+        A(0,1) = q[1] + q[1]*q[4]*q[4] + 2*q[0]*q[3]*q[4];   //a1 + a1a4^2 + 2a0a3a4
+        A(1,0) = q[1] + q[1]*q[3]*q[3] + 2*q[0]*q[3]*q[4]; ;  //a1 + a1a3^2 + 2a0a3a4
+        A(1,1) = 2*q[0] + 2*q[0]*q[3]*q[3] + q[1]*q[3]*q[4]; //2a0 + 2a0a4^2 + a1a3a4
+
+        l = sqrt(1 + q[3]*q[3] + q[4]*q[4]);
+        det_A = 1 + q[3]*q[3] + q[4]*q[4];
+
+        Kp = 1/(l*det_A) * A;
+
+        solver.compute(Kp);*/
+        //Eigen::MatrixXd vectors = solver.eigenvalues().cast<double>(); // How to cast double
+        //double d1 = vectors.col(0)[0]; // valeur propre d1
+        //double d2 = vectors.col(0)[1]; // valeur propre d2
+
+        //MyMesh::Point p = _mesh.point(vh);
+        //Eigen::Vector3d dp_x(1, 0, 2*q[0]*p[0] + q[1]*p[1] + q[3]); // deriv_part/x = (1, 0, 2a0x + a1y + a3
+        //Eigen::Vector3d dp_y(0, 1, 2*q[2]*p[1] + q[1]*p[0] + q[3]); // deriv_part/x = (1, 0, 2a2y + a1x + a3
+
+
+
+        //_mesh.property(vprop_K_p, vh) = d1*d2; //d1*d2
+        //_mesh.property(vprop_H_p, vh) = (d1+d2)/2; // (d1 + d2) /2
+
         _mesh.property(vprop_K, vh) = 4 * q[0] * q[2] - q[1]*q[1] ; // K = det (K_P) = 4 a_0 a_2 - a_1 ^ 2
         _mesh.property(vprop_H, vh) = q[0] + q[2] ; // K = Tr (K_P) = a_0 + a_2
     }
 }
-void Courbures::update(int choice){
-    set_K_colors(choice);
+
+OpenMesh::Vec3uc Courbures::color_scale_hot(double v){
+    double value = v*255;
+    value = abs(value);
+    return OpenMesh::Vec3uc(255 ,0 + value, 0);
 }
 
-OpenMesh::Vec3uc Courbures::color_scale_hot(double ratio){
-    //we want to normalize ratio so that it fits in to 6 regions
-        //where each region is 256 units long
-        int normalized = int(ratio * 256 * 2);
-
-        //find the distance to the start of the closest region
-        int x = normalized % 256;
-
-        int red = 0, grn = 0, blu = 0;
-        std::cout << "normalized : " <<normalized << "divBy256 : " << normalized/256 <<std::endl;
-        switch(normalized / 256)
-        {
-        case 0: red = 255;      grn = x;        blu = 0;       break;//red
-        case 1: red = 255 - x;  grn = 255;      blu = 0;       break;//yellow
-        }
-        std::cout << " Couleur : " << red << " " << grn << " " <<blu << std::endl;
-        return OpenMesh::Vec3uc(red ,grn ,blu);
+OpenMesh::Vec3uc Courbures::color_scale_cold(double v){
+    double value = v*255;
+    value = abs(value);
+    return OpenMesh::Vec3uc(0 ,255 + value, 255);
 }
 
-OpenMesh::Vec3uc Courbures::color_scale_cold(double ratio){
-    //we want to normalize ratio so that it fits in to 6 regions
-        //where each region is 256 units long
-        int normalized = int(ratio * 256 * 2);
-
-        //find the distance to the start of the closest region
-        int x = normalized % 256;
-
-        int red = 0, grn = 0, blu = 0;
-        switch(normalized / 256)
-        {
-        case 0: red = 0;        grn = 255 - x;  blu = 255;     break;//cyan
-        case 1: red = x;        grn = 0;        blu = 255;     break;//blue
-        }
-        return OpenMesh::Vec3uc(red ,grn ,blu);
+OpenMesh::Vec3uc color_post_cold(double v){
+    double value = v*255;
+    value = abs(value);
+    return OpenMesh::Vec3uc(0 ,255,0+value);
 }
 
-void Courbures::set_K_colors(int choice)
+OpenMesh::Vec3uc color_pre_hot(double v){
+    double value = v*255;
+    value = abs(value);
+    return OpenMesh::Vec3uc(0+value ,255, 0);
+}
+
+void Courbures::set_K_colors(int choice, bool approx)
 {
     MyMesh::VertexIter v_it ;
     MyStats<double> dist ;
@@ -227,10 +248,17 @@ void Courbures::set_K_colors(int choice)
     double r = 255, g = 255, b = 255 ;
     for (v_it = _mesh.vertices_begin(); v_it != _mesh.vertices_end(); ++v_it)
     {
-        if(choice == K)
-            dist.push_back(_mesh.property(vprop_K, *v_it));
-        else if(choice == H)
-            dist.push_back(_mesh.property(vprop_H, *v_it));
+        if(choice == K){
+            if(approx){
+                dist.push_back(_mesh.property(vprop_K, *v_it));
+            }
+            else dist.push_back(_mesh.property(vprop_K_p, *v_it));
+        }
+        else if(choice == H){
+            if(approx)
+                dist.push_back(_mesh.property(vprop_H, *v_it));
+            else dist.push_back(_mesh.property(vprop_H_p, *v_it));
+        }
     }
     double m = dist.mean(), sigma = dist.stdev(m) ;
     double tmp, lambda ;
@@ -245,10 +273,23 @@ void Courbures::set_K_colors(int choice)
 		// Carte de couleur de tmp (pour les valeurs comprises entre
         // m-sigma / m+sigma
         tmp_color = OpenMesh::Vec3uc(150,150,150);
-        if(tmp >= m-sigma && tmp <= 0)
-            tmp_color = color_scale_cold(std::abs(tmp/(m-sigma)));
-        if(tmp >0&& tmp <= (m+sigma))
-            tmp_color = color_scale_hot(tmp/(m+sigma));
+        if(tmp >= dist.min() && tmp <= m - sigma)
+            tmp_color = color_scale_cold(tmp/dist.min());
+
+            //tmp_color = OpenMesh::Vec3uc(0,0, 255);
+        if(tmp >=m + sigma&& tmp <= dist.max())
+            tmp_color = color_scale_hot(tmp/dist.max());
+            //tmp_color = OpenMesh::Vec3uc(255,0,0);
+        if(tmp > m-sigma && tmp < m ){
+            tmp_color = color_post_cold(tmp/m-sigma);
+        }
+        if(tmp < m+sigma && tmp >= m ){
+            tmp_color = color_pre_hot(tmp/m+sigma);
+        }
+
+        if(tmp == m){
+            tmp_color = Vec3uc(255 ,255, 255);
+        }
 
         _mesh.set_color(*v_it, MyMesh::Color(tmp_color)) ;
     }

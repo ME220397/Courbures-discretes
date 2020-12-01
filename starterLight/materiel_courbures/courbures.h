@@ -160,6 +160,8 @@ private:
 public:
     OpenMesh::VPropHandleT<double>    vprop_K;
     OpenMesh::VPropHandleT<double>    vprop_H;
+    OpenMesh::VPropHandleT<double>    vprop_K_p;
+    OpenMesh::VPropHandleT<double>    vprop_H_p;
 
     Courbures(MyMesh &mesh) : _mesh(mesh) {}
 
@@ -168,10 +170,9 @@ public:
     std::vector<MyMesh::VertexHandle> get_two_neighborhood(MyMesh::VertexHandle vh);
     MyQuad fit_quad(MyMesh::VertexHandle vh) ;
     void compute_KH() ;
-    void set_K_colors(int choice) ;
-    void update(int choice);
-    OpenMesh::Vec3uc color_scale_hot(double ratio);
-    OpenMesh::Vec3uc color_scale_cold(double ratio);
+    void set_K_colors(int choice, bool approx) ;
+    OpenMesh::Vec3uc color_scale_hot(double v);
+    OpenMesh::Vec3uc color_scale_cold(double v);
 };
 
 #endif // COURBURES_H

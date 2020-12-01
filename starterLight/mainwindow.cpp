@@ -6,6 +6,26 @@
 /* **** début de la partie boutons et IHM **** */
 Courbures *courb;
 
+void MainWindow::translate_to_origin(MyMesh *_mesh){
+    MyMesh::Point B;
+    MyMesh::Point O;
+    B *= 0;
+    O *= 0;
+
+    for(MyMesh::VertexIter v = _mesh->vertices_begin(); v != _mesh->vertices_end(); v++){
+        B += _mesh->point(*v);
+    }
+    B /= _mesh->n_vertices();
+
+    MyMesh::Point BO = O - B;
+
+    for (MyMesh::VertexIter v = _mesh->vertices_begin(); v != _mesh->vertices_end(); v++) {
+        MyMesh::Point newPoint = _mesh->point(*v) + BO;
+        _mesh->set_point(*v, newPoint);
+    }
+
+}
+
 void MainWindow::on_pushButton_chargement_clicked()
 {
     // fenêtre de sélection des fichiers
@@ -186,8 +206,8 @@ void MainWindow::displayMesh(MyMesh* _mesh, DisplayMode mode)
             i++;
         }
     }
-
-    ui->displayWidget->loadMesh(triVerts, triCols, _mesh->n_faces() * 3 * 3, triIndiceArray, _mesh->n_faces() * 3);
+    if(faces)
+        ui->displayWidget->loadMesh(triVerts, triCols, _mesh->n_faces() * 3 * 3, triIndiceArray, _mesh->n_faces() * 3);
 
     delete[] triIndiceArray;
     delete[] triCols;
@@ -241,8 +261,8 @@ void MainWindow::displayMesh(MyMesh* _mesh, DisplayMode mode)
         }
         edgeSizes.append(qMakePair(it.key(), it.value().size()));
     }
-
-    ui->displayWidget->loadLines(linesVerts, linesCols, i * 3, linesIndiceArray, i, edgeSizes);
+    if(wf)
+        ui->displayWidget->loadLines(linesVerts, linesCols, i * 3, linesIndiceArray, i, edgeSizes);
 
     delete[] linesIndiceArray;
     delete[] linesCols;
@@ -286,8 +306,8 @@ void MainWindow::displayMesh(MyMesh* _mesh, DisplayMode mode)
         }
         vertsSizes.append(qMakePair(vitt.key(), vitt.value().size()));
     }
-
-    ui->displayWidget->loadPoints(pointsVerts, pointsCols, i * 3, pointsIndiceArray, i, vertsSizes);
+    if(pc)
+        ui->displayWidget->loadPoints(pointsVerts, pointsCols, i * 3, pointsIndiceArray, i, vertsSizes);
 
     delete[] pointsIndiceArray;
     delete[] pointsCols;
@@ -302,7 +322,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     faceSelection = -1;
 
     modevoisinage = false;
-
     ui->setupUi(this);
 }
 
@@ -314,14 +333,71 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_pushButton_K_clicked()
 {
-    courb->update(K);
-    courb->set_K_colors(K);
+    courb->set_K_colors(K, true);
     displayMesh(&mesh,DisplayMode::VertexColorShading);
 }
 
 void MainWindow::on_pushButton_H_clicked()
 {
-    courb->update(H);
-    courb->set_K_colors(H);
+    courb->set_K_colors(H, true);
     displayMesh(&mesh,DisplayMode::VertexColorShading);
+}
+
+void MainWindow::on_pushButton_clicked()
+{
+    courb->set_K_colors(K, false);
+    displayMesh(&mesh,DisplayMode::VertexColorShading);
+}
+
+void MainWindow::on_pushButton_2_clicked()
+{
+    courb->set_K_colors(H, false);
+    displayMesh(&mesh,DisplayMode::VertexColorShading);
+}
+
+void MainWindow::on_pushButton_PC_clicked()
+{
+    pc = true;
+    wf = false;
+    faces = false;
+
+    MyMesh * _mesh = &mesh;
+    for (MyMesh::VertexIter v = _mesh->vertices_begin(); v != _mesh->vertices_end(); v++) {
+        default_thic = _mesh->data(*v).thickness;
+        _mesh->data(*v).thickness = 10;
+    }
+    displayMesh(&mesh);
+}
+
+void MainWindow::on_pushButton_WF_clicked()
+{
+    pc = true;
+    wf = true;
+    faces = false;
+    MyMesh * _mesh = &mesh;
+    for (MyMesh::VertexIter v = _mesh->vertices_begin(); v != _mesh->vertices_end(); v++) {
+        _mesh->data(*v).thickness = default_thic;
+    }
+    displayMesh(&mesh);
+}
+
+void MainWindow::on_pushButton_Me_clicked()
+{
+    pc = true;
+    wf = true;
+    faces = true;
+    MyMesh * _mesh = &mesh;
+    for (MyMesh::VertexIter v = _mesh->vertices_begin(); v != _mesh->vertices_end(); v++) {
+        _mesh->data(*v).thickness = default_thic;
+    }
+    displayMesh(&mesh);
+}
+
+void MainWindow::on_horizontalSlider_valueChanged(int value)
+{
+    MyMesh * _mesh = &mesh;
+    for (MyMesh::VertexIter v = _mesh->vertices_begin(); v != _mesh->vertices_end(); v++) {
+        _mesh->data(*v).thickness = value;
+    }
+    displayMesh(&mesh);
 }
