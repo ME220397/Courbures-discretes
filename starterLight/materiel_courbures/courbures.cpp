@@ -187,7 +187,7 @@ void Courbures::compute_KH()
         vh = *v_it ;
         q = fit_quad(vh) ;
 
-        /*A(0,0) = 2*q[0] + 2*q[0]*q[4]*q[4] + q[1]*q[3]*q[4]; //2a0 + 2a0a4^2 + a1a3a4
+        A(0,0) = 2*q[0] + 2*q[0]*q[4]*q[4] + q[1]*q[3]*q[4]; //2a0 + 2a0a4^2 + a1a3a4
         A(0,1) = q[1] + q[1]*q[4]*q[4] + 2*q[0]*q[3]*q[4];   //a1 + a1a4^2 + 2a0a3a4
         A(1,0) = q[1] + q[1]*q[3]*q[3] + 2*q[0]*q[3]*q[4]; ;  //a1 + a1a3^2 + 2a0a3a4
         A(1,1) = 2*q[0] + 2*q[0]*q[3]*q[3] + q[1]*q[3]*q[4]; //2a0 + 2a0a4^2 + a1a3a4
@@ -197,19 +197,19 @@ void Courbures::compute_KH()
 
         Kp = 1/(l*det_A) * A;
 
-        solver.compute(Kp);*/
-        //Eigen::MatrixXd vectors = solver.eigenvalues().cast<double>(); // How to cast double
-        //double d1 = vectors.col(0)[0]; // valeur propre d1
-        //double d2 = vectors.col(0)[1]; // valeur propre d2
+        solver.compute(Kp);
+        Eigen::MatrixXd vectors = solver.eigenvalues().real(); // How to cast double
+        double d1 = vectors.col(0)[0]; // valeur propre d1
+        double d2 = vectors.col(0)[1]; // valeur propre d2
 
-        //MyMesh::Point p = _mesh.point(vh);
-        //Eigen::Vector3d dp_x(1, 0, 2*q[0]*p[0] + q[1]*p[1] + q[3]); // deriv_part/x = (1, 0, 2a0x + a1y + a3
-        //Eigen::Vector3d dp_y(0, 1, 2*q[2]*p[1] + q[1]*p[0] + q[3]); // deriv_part/x = (1, 0, 2a2y + a1x + a3
+        MyMesh::Point p = _mesh.point(vh);
+        Eigen::Vector3d dp_x(1, 0, 2*q[0]*p[0] + q[1]*p[1] + q[3]); // deriv_part/x = (1, 0, 2a0x + a1y + a3
+        Eigen::Vector3d dp_y(0, 1, 2*q[2]*p[1] + q[1]*p[0] + q[3]); // deriv_part/y = (1, 0, 2a2y + a1x + a3
 
 
 
-        //_mesh.property(vprop_K_p, vh) = d1*d2; //d1*d2
-        //_mesh.property(vprop_H_p, vh) = (d1+d2)/2; // (d1 + d2) /2
+        _mesh.property(vprop_K_p, vh) = d1*d2; //d1*d2
+        _mesh.property(vprop_H_p, vh) = (d1+d2)/2; // (d1 + d2) /2
 
         _mesh.property(vprop_K, vh) = 4 * q[0] * q[2] - q[1]*q[1] ; // K = det (K_P) = 4 a_0 a_2 - a_1 ^ 2
         _mesh.property(vprop_H, vh) = q[0] + q[2] ; // K = Tr (K_P) = a_0 + a_2
@@ -266,10 +266,18 @@ void Courbures::set_K_colors(int choice, bool approx)
     std::cout << "K mean : " << m << " - sigma : " << sigma << std::endl;
     for (v_it = _mesh.vertices_begin(); v_it != _mesh.vertices_end(); ++v_it)
     {
-        if( choice == K)
-            tmp  = _mesh.property(vprop_K, *v_it) - m ;
-        else if(choice == H)
-            tmp  = _mesh.property(vprop_H, *v_it) - m ;
+        if(approx){
+            if( choice == K)
+                tmp  = _mesh.property(vprop_K, *v_it) - m ;
+            else if(choice == H)
+                tmp  = _mesh.property(vprop_H, *v_it) - m ;
+        }
+        else{
+            if( choice == K)
+                tmp  = _mesh.property(vprop_K_p, *v_it) - m ;
+            else if(choice == H)
+                tmp  = _mesh.property(vprop_H_p, *v_it) - m ;
+        }
 		// Carte de couleur de tmp (pour les valeurs comprises entre
         // m-sigma / m+sigma
         tmp_color = OpenMesh::Vec3uc(150,150,150);
@@ -285,10 +293,6 @@ void Courbures::set_K_colors(int choice, bool approx)
         }
         if(tmp < m+sigma && tmp >= m ){
             tmp_color = color_pre_hot(tmp/m+sigma);
-        }
-
-        if(tmp == m){
-            tmp_color = Vec3uc(255 ,255, 255);
         }
 
         _mesh.set_color(*v_it, MyMesh::Color(tmp_color)) ;

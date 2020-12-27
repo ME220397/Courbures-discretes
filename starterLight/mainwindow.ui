@@ -66,23 +66,9 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_PC">
+        <widget class="QPushButton" name="pushButton_3">
          <property name="text">
-          <string>To Point Cloud</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="pushButton_WF">
-         <property name="text">
-          <string>To wireframe</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="pushButton_Me">
-         <property name="text">
-          <string>To Mesh</string>
+          <string>To origin</string>
          </property>
         </widget>
        </item>
@@ -126,19 +112,6 @@
           </size>
          </property>
         </spacer>
-       </item>
-       <item>
-        <widget class="QSlider" name="horizontalSlider">
-         <property name="minimum">
-          <number>0</number>
-         </property>
-         <property name="maximum">
-          <number>30</number>
-         </property>
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
        </item>
       </layout>
      </widget>

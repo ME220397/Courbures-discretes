@@ -355,49 +355,8 @@ void MainWindow::on_pushButton_2_clicked()
     displayMesh(&mesh,DisplayMode::VertexColorShading);
 }
 
-void MainWindow::on_pushButton_PC_clicked()
+void MainWindow::on_pushButton_3_clicked()
 {
-    pc = true;
-    wf = false;
-    faces = false;
-
-    MyMesh * _mesh = &mesh;
-    for (MyMesh::VertexIter v = _mesh->vertices_begin(); v != _mesh->vertices_end(); v++) {
-        default_thic = _mesh->data(*v).thickness;
-        _mesh->data(*v).thickness = 10;
-    }
-    displayMesh(&mesh);
-}
-
-void MainWindow::on_pushButton_WF_clicked()
-{
-    pc = true;
-    wf = true;
-    faces = false;
-    MyMesh * _mesh = &mesh;
-    for (MyMesh::VertexIter v = _mesh->vertices_begin(); v != _mesh->vertices_end(); v++) {
-        _mesh->data(*v).thickness = default_thic;
-    }
-    displayMesh(&mesh);
-}
-
-void MainWindow::on_pushButton_Me_clicked()
-{
-    pc = true;
-    wf = true;
-    faces = true;
-    MyMesh * _mesh = &mesh;
-    for (MyMesh::VertexIter v = _mesh->vertices_begin(); v != _mesh->vertices_end(); v++) {
-        _mesh->data(*v).thickness = default_thic;
-    }
-    displayMesh(&mesh);
-}
-
-void MainWindow::on_horizontalSlider_valueChanged(int value)
-{
-    MyMesh * _mesh = &mesh;
-    for (MyMesh::VertexIter v = _mesh->vertices_begin(); v != _mesh->vertices_end(); v++) {
-        _mesh->data(*v).thickness = value;
-    }
+    translate_to_origin(&mesh);
     displayMesh(&mesh);
 }
