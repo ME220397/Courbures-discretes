@@ -66,14 +66,35 @@
         </widget>
        </item>
        <item>
+        <widget class="QPushButton" name="pushButton_3">
+         <property name="text">
+          <string>To origin</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QPushButton" name="pushButton_K">
          <property name="text">
-          <string>Carte de Courbure : K</string>
+          <string>Carte de Courbure : K approx</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="pushButton_H">
+         <property name="text">
+          <string>Carte de Courbure : H approx</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton">
+         <property name="text">
+          <string>Carte de Courbure : K </string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_2">
          <property name="text">
           <string>Carte de Courbure : H</string>
          </property>
@@ -106,7 +127,7 @@
      <x>0</x>
      <y>0</y>
      <width>632</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>

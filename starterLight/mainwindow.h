@@ -46,7 +46,7 @@ public:
     void showSelectionsNeighborhood(MyMesh* _mesh);
     void showPath(MyMesh* _mesh, int v1, int v2);
     void showBorder(MyMesh* _mesh);
-
+    void translate_to_origin(MyMesh *_mesh);
     void displayMesh(MyMesh *_mesh, DisplayMode mode = DisplayMode::Normal);
     void resetAllColorsAndThickness(MyMesh* _mesh);
 
@@ -60,12 +60,21 @@ private slots:
 
     void on_pushButton_H_clicked();
 
+    void on_pushButton_clicked();
+
+    void on_pushButton_2_clicked();
+
+    void on_pushButton_3_clicked();
+
 private:
 
     bool modevoisinage;
 
     MyMesh mesh;
-
+    int default_thic;
+    bool pc = true;
+    bool wf = true;
+    bool faces = true;
     int vertexSelection;
     int edgeSelection;
     int faceSelection;
