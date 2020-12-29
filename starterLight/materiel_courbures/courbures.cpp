@@ -188,9 +188,9 @@ void Courbures::compute_KH()
         q = fit_quad(vh) ;
 
         A(0,0) = 2*q[0] + 2*q[0]*q[4]*q[4] + q[1]*q[3]*q[4]; //2a0 + 2a0a4^2 + a1a3a4
-        A(0,1) = q[1] + q[1]*q[4]*q[4] + 2*q[0]*q[3]*q[4];   //a1 + a1a4^2 + 2a0a3a4
+        A(0,1) = q[1] + q[1]*q[4]*q[4] + 2*q[2]*q[3]*q[4];   //a1 + a1a4^2 + 2a2a3a4
         A(1,0) = q[1] + q[1]*q[3]*q[3] + 2*q[0]*q[3]*q[4]; ;  //a1 + a1a3^2 + 2a0a3a4
-        A(1,1) = 2*q[0] + 2*q[0]*q[3]*q[3] + q[1]*q[3]*q[4]; //2a0 + 2a0a4^2 + a1a3a4
+        A(1,1) = 2*q[2] + 2*q[2]*q[3]*q[3] + q[1]*q[3]*q[4]; //2a2 + 2a2a4^2 + a1a3a4
 
         l = sqrt(1 + q[3]*q[3] + q[4]*q[4]);
         det_A = 1 + q[3]*q[3] + q[4]*q[4];
@@ -201,12 +201,6 @@ void Courbures::compute_KH()
         Eigen::MatrixXd vectors = solver.eigenvalues().real(); // How to cast double
         double d1 = vectors.col(0)[0]; // valeur propre d1
         double d2 = vectors.col(0)[1]; // valeur propre d2
-
-        MyMesh::Point p = _mesh.point(vh);
-        Eigen::Vector3d dp_x(1, 0, 2*q[0]*p[0] + q[1]*p[1] + q[3]); // deriv_part/x = (1, 0, 2a0x + a1y + a3
-        Eigen::Vector3d dp_y(0, 1, 2*q[2]*p[1] + q[1]*p[0] + q[3]); // deriv_part/y = (1, 0, 2a2y + a1x + a3
-
-
 
         _mesh.property(vprop_K_p, vh) = d1*d2; //d1*d2
         _mesh.property(vprop_H_p, vh) = (d1+d2)/2; // (d1 + d2) /2
